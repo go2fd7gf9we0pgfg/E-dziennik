@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Prosty e-Dziennik</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  #login, #dashboard { max-width: 500px; margin: auto; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  table, th, td { border: 1px solid black; }
+  th, td { padding: 5px; text-align: center; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <h2>Logowanie</h2>
+  <input type="text" id="username" placeholder="Login"><br><br>
+  <input type="password" id="password" placeholder="Hasło"><br><br>
+  <button onclick="login()">Zaloguj</button>
+  <p id="login-msg" style="color:red;"></p>
+</div>
+
+<div id="dashboard" class="hidden">
+  <h2 id="welcome"></h2>
+  
+  <!-- Sekcja tylko dla nauczycieli -->
+  <div id="teacher-section" class="hidden">
+    <h3>Dodaj dane ucznia</h3>
+    <select id="student-select"></select><br><br>
+    <input type="text" id="lesson-topic" placeholder="Temat lekcji"><br><br>
+    <input type="text" id="grades" placeholder="Ocena"><br><br>
+    <input type="text" id="attendance" placeholder="Obecność (np. obecny, nieobecny)"><br><br>
+    <input type="text" id="remarks" placeholder="Uwagi"><br><br>
+    <button onclick="addRecord()">Dodaj</button>
+  </div>
+
+  <h3>Twoje dane / Historia uczniów</h3>
+  <table id="records-table">
+    <tr><th>Uczeń</th><th>Temat</th><th>Ocena</th><th>Obecność</th><th>Uwagi</th></tr>
+  </table>
+  <br><button onclick="logout()">Wyloguj</button>
+</div>
+
+<script>
+const users = {
+  'Julia Kubera': '123',
+  'Kamil Lach': '123',
+  'Bułka Julia': '123',
+  'Sara Kotyniak': '123',
+  'Dominik Lach': '123',
+  'Nikodem Niedzwiecki': '123',
+  'Kasper Jakus': '123',
+  'Szymon Kotyniak': '123',
+  'Maja Kotyniak': '123',
+  'Lena Rutkowska': '123'
+};
+
+const teachers = ['Julia Kubera', 'Kamil Lach', 'Bułka Julia', 'Sara Kotyniak'];
+const students = ['Dominik Lach', 'Nikodem Niedzwiecki', 'Kasper Jakus', 'Szymon Kotyniak', 'Maja Kotyniak', 'Lena Rutkowska'];
+
+let currentUser = '';
+let records = [];
+
+function login() {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+
+  if(users[username] && users[username] === password) {
+    currentUser = username;
+    document.getElementById('login').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+    document.getElementById('welcome').innerText = `Witaj, ${currentUser}`;
+
+    // Domyślnie ukryj formularz
+    document.getElementById('teacher-section').classList.add('hidden');
+
+    // Jeśli nauczyciel → pokaż formularz
+    if(teachers.includes(currentUser)) {
+      document.getElementById('teacher-section').classList.remove('hidden');
+      const select = document.getElementById('student-select');
+      select.innerHTML = '';
+      students.forEach(s => {
+        let opt = document.createElement('option');
+        opt.value = s;
+        opt.text = s;
+        select.add(opt);
+      });
+    }
+
+    showRecords();
+  } else {
+    document.getElementById('login-msg').innerText = 'Nieprawidłowy login lub hasło';
+  }
+}
+
+function logout() {
+  currentUser = '';
+  document.getElementById('login').classList.remove('hidden');
+  document.getElementById('dashboard').classList.add('hidden');
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+}
+
+function addRecord() {
+  const student = document.getElementById('student-select').value;
+  const topic = document.getElementById('lesson-topic').value;
+  const grade = document.getElementById('grades').value;
+  const attendance = document.getElementById('attendance').value;
+  const remarks = document.getElementById('remarks').value;
+
+  records.push({ student, topic, grade, attendance, remarks });
+
+  document.getElementById('lesson-topic').value = '';
+  document.getElementById('grades').value = '';
+  document.getElementById('attendance').value = '';
+  document.getElementById('remarks').value = '';
+
+  showRecords();
+}
+
+function showRecords() {
+  const table = document.getElementById('records-table');
+  table.innerHTML = '<tr><th>Uczeń</th><th>Temat</th><th>Ocena</th><th>Obecność</th><th>Uwagi</th></tr>';
+
+  records.forEach(r => {
+    // nauczyciel → widzi wszystko, uczeń → tylko swoje
+    if (teachers.includes(currentUser) || r.student === currentUser) {
+      let row = table.insertRow();
+      row.insertCell(0).innerText = r.student;
+      row.insertCell(1).innerText = r.topic;
+      row.insertCell(2).innerText = r.grade;
+      row.insertCell(3).innerText = r.attendance;
+      row.insertCell(4).innerText = r.remarks;
+    }
+  });
+}
+</script>
+
+</body>
+</html>
